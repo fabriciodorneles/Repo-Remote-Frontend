@@ -1,31 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';//useEffect para disparar funções quando tiver alguma informação alterada
+import './App.css';
+import api from './services/api'
 
-import "./styles.css";
 
 function App() {
-  async function handleAddRepository() {
-    // TODO
-  }
+    const [projects, setProjects] = useState([]);
+      useEffect(() => {
+        api.get('/repositories').then(response => {
+            setProjects(response.data)
+        })
+    }, []);
 
-  async function handleRemoveRepository(id) {
-    // TODO
-  }
+    async function handleAddRepository() {
+           const response = await api.post('repositories', {
+            title: `Personal Manager ${Date.now()}`,
+            owner: "Fabricio"
+        })
 
-  return (
-    <div>
-      <ul data-testid="repository-list">
-        <li>
-          Repositório 1
+        const project = response.data;
 
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
-      </ul>
+        setProjects([...projects, project]);
+    }
 
-      <button onClick={handleAddRepository}>Adicionar</button>
-    </div>
-  );
+    async function handleRemoveRepository(id) {
+       
+        const response = await api.delete(`repositories/${id}`); //, {
+    
+        const filter = projects.filter(function(project){
+            return project.id != id;
+        })
+
+        setProjects(filter);
+     }
+
+    return (
+        <div>
+        <ul data-testid="repository-list">            
+                {projects.map(project => <li key={project.id}>{project.title}
+                    <button onClick={() => handleRemoveRepository(project.id)}>
+                        Remover
+                    </button>                
+                </li>)}
+
+        </ul>
+        <button onClick={handleAddRepository}>Adicionar</button>
+        </div>    
+    );
 }
 
 export default App;
